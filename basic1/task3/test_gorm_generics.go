@@ -1,0 +1,67 @@
+package main
+
+import (
+	"context"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
+
+type Product struct {
+	gorm.Model
+	Code  string
+	Price uint
+}
+
+func main() {
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	ctx := context.Background()
+
+	// Migrate the schema
+	err = db.AutoMigrate(&Product{})
+	if err != nil {
+		panic("failed to migrate schema")
+	}
+
+	// Create
+	product := Product{Code: "D42", Price: 100}
+	err = db.WithContext(ctx).Create(&product).Error
+	if err != nil {
+		panic("failed to create product")
+	}
+
+	// Read
+	var firstProduct Product
+	err = db.WithContext(ctx).Where("id = ?", product.ID).First(&firstProduct).Error // find product with integer primary key
+	if err != nil {
+		panic("failed to find product by id")
+	}
+
+	var products []Product
+	err = db.WithContext(ctx).Where("code = ?", "D42").Find(&products).Error // find product with code D42
+	if err != nil {
+		panic("failed to find products by code")
+	}
+
+	// Update - update product's price to 200
+	err = db.WithContext(ctx).Model(&Product{}).Where("id = ?", product.ID).Update("Price", 200).Error
+	if err != nil {
+		panic("failed to update product price")
+	}
+
+	// Update - update multiple fields
+	err = db.WithContext(ctx).Model(&Product{}).Where("id = ?", product.ID).Updates(Product{Code: "D42", Price: 100}).Error
+	if err != nil {
+		panic("failed to update product")
+	}
+
+	// Delete - delete product
+	err = db.WithContext(ctx).Where("id = ?", product.ID).Delete(&Product{}).Error
+	if err != nil {
+		panic("failed to delete product")
+	}
+}
