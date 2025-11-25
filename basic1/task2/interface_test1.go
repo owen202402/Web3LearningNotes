@@ -8,19 +8,59 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
-func testNum1(num *int) int {
-	fmt.Println("before change: ", *num, "\tadd:0x", num)
-	*num = 10
-	fmt.Println("after change: ", *num, "\tadd:0x", num)
-	return *num
+type Shape interface {
+	Area() float64
+	Perimeter() float64
+}
+
+type Rectangle struct {
+	l int
+	w int
+}
+
+type Circle struct {
+	r int
+}
+
+func (rect *Rectangle) Area() float64 {
+	fmt.Printf("Rectangle, l:%d w:%d \n", rect.l, rect.w)
+	return float64(rect.l * rect.w)
+}
+
+func (rect *Rectangle) Perimeter() float64 {
+	fmt.Printf("Rectangle, l:%d w:%d \n", rect.l, rect.w)
+	return float64(rect.l+rect.w) * 2
+}
+
+func (cir *Circle) Area() float64 {
+	fmt.Print("Circle, r ", cir.r, "  ")
+	return float64(cir.r*cir.r) * math.Pi
+}
+
+func (cir *Circle) Perimeter() float64 {
+	fmt.Print("Circle, r ", cir.r, "  ")
+	return float64(cir.r) * 2 * math.Pi
+}
+
+func PrintArea(s Shape) {
+	fmt.Println("Area: ", s.Area())
+}
+
+func PrintPerimeter(s Shape) {
+	fmt.Println("Perimeter: ", s.Perimeter())
 }
 
 func main() {
-	fmt.Println("task2 - pointer1")
-	tNum := 5
-	fmt.Println("before testNum1, tNum: ", tNum)
-	testNum1(&tNum)
-	fmt.Println("after testNum1, tNum: ", tNum)
+	circle := &Circle{r: 3}
+	rectangle := &Rectangle{l: 5, w: 2}
+	PrintPerimeter(circle)
+	PrintPerimeter(rectangle)
+	PrintArea(circle)
+	PrintArea(rectangle)
+
 }
