@@ -15,8 +15,8 @@ import (
 
 func main() {
 	fmt.Println("chanel test2.")
-	ch := make(chan int)
-	// ch := make(chan int, 5)
+	// ch := make(chan int)
+	ch := make(chan int, 5)
 
 	go func(ch chan<- int) {
 		for i := 1; i <= 100; i += 2 {
