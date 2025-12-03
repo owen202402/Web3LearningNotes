@@ -54,13 +54,13 @@ func main() {
 
 	// 创建表 students 的表
 	db.AutoMigrate(&Student{})
-	// // 插入一条新记录，学生姓名为 "张三"，年龄为 20，年级为 "三年级"。
-	// zhangsan := Student{Name: "张三", Age: 20, Grade: "三年级"}
-	// result := db.Create(&zhangsan)
-	// fmt.Println("Create result:", result)
-	// // 插入一条新记录，学生姓名为 "李四"，年龄为 20，年级为 "三年级"。
-	// lisi := Student{Name: "李四", Age: 12, Grade: "二年级"}
-	// db.Create(&lisi)
+	// 插入一条新记录，学生姓名为 "张三"，年龄为 20，年级为 "三年级"。
+	zhangsan := Student{Name: "张三", Age: 20, Grade: "三年级"}
+	result := db.Create(&zhangsan)
+	fmt.Println("Create result:", result)
+	// 插入一条新记录，学生姓名为 "李四"，年龄为 20，年级为 "三年级"。
+	lisi := Student{Name: "李四", Age: 12, Grade: "二年级"}
+	db.Create(&lisi)
 
 	// 查询 students 表中所有年龄大于 18 岁的学生信息。
 	var students []Student
