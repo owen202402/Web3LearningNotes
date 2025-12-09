@@ -1,0 +1,23 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "gorm",
+            "database": "${workspaceFolder:Web3LearningNotes}/basic1/task3/3_advancedGorm/db_3_1_practice.db"
+        },
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:Web3LearningNotes}/basic1/task3/3_advancedGorm/practice3_3/db_3_3_practice.db",
+            "name": "db_3_3_practice"
+        }
+    ],
+    "sqltools.useNodeRuntime": true,
+
+    // 可选：指定特定语言的格式化行为
+    "[go]": {
+        "editor.formatOnSave": false // 关闭 go 的自动格式化
+    }
+
+}

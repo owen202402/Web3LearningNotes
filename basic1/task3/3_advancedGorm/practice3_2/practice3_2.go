@@ -1,0 +1,81 @@
+/*
+进阶gorm
+题目1：模型定义
+假设你要开发一个博客系统，有以下几个实体： User （用户）、 Post （文章）、 Comment （评论）。
+要求 ：
+使用Gorm定义 User 、 Post 和 Comment 模型，其中 User 与 Post 是一对多关系（一个用户可以发布多篇文章）， Post 与 Comment 也是一对多关系（一篇文章可以有多个评论）。
+编写Go代码，使用Gorm创建这些模型对应的数据库表。
+
+题目2：关联查询
+基于上述博客系统的模型定义。
+要求 ：
+编写Go代码，使用Gorm查询某个用户发布的所有文章及其对应的评论信息。
+编写Go代码，使用Gorm查询评论数量最多的文章信息。
+
+题目3：钩子函数
+继续使用博客系统的模型。
+要求 ：
+为 Post 模型添加一个钩子函数，在文章创建时自动更新用户的文章数量统计字段。
+为 Comment 模型添加一个钩子函数，在评论删除时检查文章的评论数量，如果评论数量为 0，则更新文章的评论状态为 "无评论"。
+*/
+
+package practice3_2
+
+import (
+	"fmt"
+	"log"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
+
+
+type User struct{
+	ID uint
+	Name string
+	Posts []Post
+}
+
+type Post struct{
+	ID int
+	Title string
+	UserID uint
+	Comments []Comment
+}
+
+type Comment struct{
+	ID int
+	Content string
+	PostID uint
+	Count uint
+}
+
+type PostCount struct{
+	PostID uint
+	PostCount uint
+}
+
+func main() {
+	fmt.Println("practice2 test")
+	db, err := gorm.Open(sqlite.Open("db_3_1_practice.db"), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Can't open the sqlite db.", err)
+	}
+
+	// 使用Gorm查询某个用户发布的所有文章及其对应的评论信息。
+	user := &User{}
+	db.Preload("Posts").Preload("Posts.Comments").Where("name = ?", "张三").Find(&user)
+	fmt.Println(user)
+	user2 := &User{}
+	db.Preload("Posts").Preload("Posts.Comments").Where("name = ?", "李四").Find(&user2)
+	fmt.Println(user2)
+
+	// 使用Gorm查询评论数量最多的文章信息。
+	mostPost := &PostCount{}
+	db.Model(&Comment{}).Select("post_id, COUNT(*) as post_count").Group("post_id").Order("post_count DESC").Limit(1).Scan(&mostPost)
+	fmt.Printf("most post_id:%d  post_count:%d\n", mostPost.PostID, mostPost.PostCount)
+	post := &Post{}
+	db.Preload("Comments").First(&post, mostPost.PostID)
+	fmt.Println("评论数量最多的文章信息: ", post)
+	
+}
