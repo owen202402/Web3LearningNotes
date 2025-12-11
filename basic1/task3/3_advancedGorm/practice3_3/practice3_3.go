@@ -41,6 +41,7 @@ type PostEx struct{
 	ID int
 	Title string
 	Status string
+	CommentsCount uint
 	Comments []Comment
 	UserID uint
 }
@@ -48,19 +49,60 @@ type PostEx struct{
 type Comment struct{
 	ID int
 	Content string
-	PostExID uint
 	Count uint
+	PostExID uint
 }
 
-type PostCount struct{
-	PostID uint
-	PostCount uint
+// 为 Post 模型添加一个钩子函数，在文章创建时自动更新用户的文章数量统计字段。
+func (p *PostEx)AfterCreate(tx *gorm.DB)(err error){
+	user := &User{}
+	// tx.Where("ID = ?", p.UserID).Find(&user)
+	tx.Preload("PostExs").Preload("PostExs.Comments").Where("ID = ?", p.UserID).Find(&user)
+	// tx.Debug().Preload("PostExs").Preload("PostExs.Comments").Where("ID = ?", p.UserID).Find(&user)
+	fmt.Println("before print", user)
+	user.PostCount += 1
+	fmt.Println("after print",user)
+	tx.Model(&User{}).Where("ID = ?", user.ID).Update("postCount", user.PostCount)
+
+	tx.Model(p).Update("status", "没有评论")
+	return
+}
+
+// CommentsCount会以2的倍数增加
+// func (c *Comment)AfterCreate(tx *gorm.DB)(err error){
+// 	post := &PostEx{}
+// 	tx.Where("ID = ?", ).Find(&post)
+// 	post.CommentsCount += 1
+// 	tx.Model(&PostEx{}).Where("ID = ?", c.PostExID).Updates(PostEx{Status: "有评论", CommentsCount: post.CommentsCount})
+// 	return
+// }
+func (c *Comment)AfterCreate(tx *gorm.DB)(err error){
+	post := &PostEx{}
+	tx.Where("ID = ?", ).Find(&post)
+	post.CommentsCount += 1
+	tx.Model(&PostEx{}).Where("ID = ?", c.PostExID).Updates(PostEx{Status: "有评论", CommentsCount: post.CommentsCount})
+	return
+}
+
+// 为 Comment 模型添加一个钩子函数，在评论删除时检查文章的评论数量，如果评论数量为 0，则更新文章的评论状态为 "无评论"。
+func (c *Comment)AfterDelete(tx *gorm.DB)(err error){
+	post := &PostEx{}
+	tx.Where("ID = ?", c.PostExID).Find(&post)
+	if post.CommentsCount-1>0 {
+		post.CommentsCount -= 1
+	} else {
+		post.CommentsCount = 0
+		post.Status = "没有评论"
+	}
+	tx.Model(&PostEx{}).Update("status", post.Status)
+	return
 }
 
 func createDb(db *gorm.DB){
 	db.AutoMigrate(&User{}, &PostEx{}, &Comment{})
 	user := User{
 		Name : "张三",
+		PostCount: 0,
 		PostExs: []PostEx{
 			{ 
 				Title: "文章1",
@@ -68,7 +110,7 @@ func createDb(db *gorm.DB){
 					{ Content: "好看1",  Count: 1 },
 					},  
 			},
-			{ Title: "文章2", Status: "没有评论"},
+			{ Title: "文章2", CommentsCount: 0, Status: "没有评论"},
 			{ Title: "文章3",
 				Comments: []Comment{
 					{ Content: "好看2",  Count: 1 },
@@ -80,6 +122,7 @@ func createDb(db *gorm.DB){
 
 	user2 := User{
 		Name : "李四",
+		PostCount: 0,		
 		PostExs: []PostEx{
 			{ Title: "文章6",
 				Comments: []Comment{

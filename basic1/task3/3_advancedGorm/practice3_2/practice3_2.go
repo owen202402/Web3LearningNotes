@@ -19,7 +19,7 @@
 为 Comment 模型添加一个钩子函数，在评论删除时检查文章的评论数量，如果评论数量为 0，则更新文章的评论状态为 "无评论"。
 */
 
-package practice3_2
+package main
 
 import (
 	"fmt"
@@ -64,7 +64,8 @@ func main() {
 
 	// 使用Gorm查询某个用户发布的所有文章及其对应的评论信息。
 	user := &User{}
-	db.Preload("Posts").Preload("Posts.Comments").Where("name = ?", "张三").Find(&user)
+	// db.Preload("Posts").Preload("Posts.Comments").Where("name = ?", "张三").Find(&user)
+	db.Debug().Preload("Posts").Preload("Posts.Comments").Where("name = ?", "张三").Find(&user)
 	fmt.Println(user)
 	user2 := &User{}
 	db.Preload("Posts").Preload("Posts.Comments").Where("name = ?", "李四").Find(&user2)
@@ -72,7 +73,8 @@ func main() {
 
 	// 使用Gorm查询评论数量最多的文章信息。
 	mostPost := &PostCount{}
-	db.Model(&Comment{}).Select("post_id, COUNT(*) as post_count").Group("post_id").Order("post_count DESC").Limit(1).Scan(&mostPost)
+	// db.Model(&Comment{}).Select("post_id, COUNT(*) as post_count").Group("post_id").Order("post_count DESC").Limit(1).Scan(&mostPost)
+	db.Debug().Model(&Comment{}).Select("post_id, COUNT(*) as post_count").Group("post_id").Order("post_count DESC").Limit(1).Scan(&mostPost)
 	fmt.Printf("most post_id:%d  post_count:%d\n", mostPost.PostID, mostPost.PostCount)
 	post := &Post{}
 	db.Preload("Comments").First(&post, mostPost.PostID)
